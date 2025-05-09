@@ -563,10 +563,9 @@ export default function Course() {
   const fetchCourseWeights = async (programId) => {
     try {
       if (!selectedCourseId || !selectedSectionId || !selectedSemesterId || !selectedYear) {
-        console.log("ไม่มีพารามิเตอร์ที่จำเป็นสำหรับการดึงข้อมูล weights");
+        // console.log("ไม่มีพารามิเตอร์ที่จำเป็นสำหรับการดึงข้อมูล weights");
         return;
       }
-  
       console.log("กำลังดึงข้อมูล course_clo weights ด้วยพารามิเตอร์:", {
         program_id: programId,
         course_id: selectedCourseId,
@@ -576,6 +575,7 @@ export default function Course() {
       });
   
       // เปลี่ยนจาก '/course_clo' เป็น '/course_clo_with_weight' เพื่อดึงข้อมูล weight
+
       const response = await axios.get("/course_clo_with_weight", {
         params: {
           program_id: programId,
@@ -585,6 +585,7 @@ export default function Course() {
           year: selectedYear
         }
       });
+
   
       console.log("ข้อมูลจาก API course_clo_with_weight:", response.data);
   
@@ -595,7 +596,7 @@ export default function Course() {
           response.data.forEach(item => {
             const cloId = item.CLO_id;
             const weight = item.weight || 0;
-  
+
             if (cloId !== undefined) {
               const key = `a${selectedCourseId}_${cloId}`;
               newWeights[key] = {
@@ -609,6 +610,7 @@ export default function Course() {
           return newWeights;
         });
   
+
         // เพิ่มการเก็บค่า weight ในอีกตัวแปรสำหรับใช้ในการคำนวณคะแนน
         const cloWeightsObj = {};
         response.data.forEach(item => {
@@ -616,7 +618,7 @@ export default function Course() {
         });
         setCloWeights(cloWeightsObj);
       } else {
-        console.log("ไม่พบข้อมูล course_clo");
+        // console.log("ไม่พบข้อมูล course_clo");
         setWeights({});
         setCloWeights({});
       }
@@ -2943,25 +2945,27 @@ export default function Course() {
       // ถ้าไม่มี CLO ให้แจ้งเตือนผู้ใช้
       alert("ไม่พบข้อมูล CLO สำหรับ Assignment นี้ กรุณาเพิ่ม CLO ก่อนบันทึกคะแนน");
       return;
+
     }
-  
+
     // ตรวจสอบว่ามี homeworks หรือไม่
     if (!homeworks || homeworks.length === 0) {
       alert("ไม่พบข้อมูล Assignment ที่จะบันทึก");
       return;
     }
-  
+
     // เตรียมข้อมูลสำหรับส่งไป API
     const prepareDataForApi = () => {
       const apiData = [];
-  
+
       homeworks.forEach((hw) => {
         // สำหรับแต่ละ CLO ใน homework
         for (const cloId in hw.scores) {
           if (Object.prototype.hasOwnProperty.call(hw.scores, cloId)) {
             const score = Number(hw.scores[cloId]) || 0;
+
             const weight = cloWeights[cloId] || 0;
-  
+
             apiData.push({
               assignment_id: hw.id,
               item: {
@@ -2973,10 +2977,10 @@ export default function Course() {
           }
         }
       });
-  
+
       return apiData;
     };
-  
+
     // บันทึกข้อมูล
     const saveData = async () => {
       try {
@@ -3009,7 +3013,7 @@ export default function Course() {
         setLoading(false);
       }
     };
-  
+
     saveData();
   };
 
@@ -3459,6 +3463,7 @@ export default function Course() {
     
     // เรียกใช้ฟังก์ชันดึงข้อมูล
     fetchData();
+
   };
 
 
@@ -3990,7 +3995,6 @@ export default function Course() {
               </div>
             </div>
           )}
-
           {/* Modal for Previous Year CLOs */}
           {showPreviousYearCLOsModal && (
             <div className="modal show" style={{ display: "block" }}>
@@ -4009,6 +4013,7 @@ export default function Course() {
                       <div className="card">
                         <div className="card-header bg-primary text-white">
                           Course Learning Outcomes (CLOs)
+
                         </div>
                         <div className="card-body">
                           <table className="table table-striped">
@@ -4128,6 +4133,7 @@ export default function Course() {
               ) : (
                 <p>No CLO data available</p>
               )}
+
             </div>
           </div>
 
@@ -5195,7 +5201,6 @@ export default function Course() {
 
 
 
-
               {selectedAssignment && (
                 <div className="modal fade show" style={{ display: "block" }}>
                   <div className="modal-dialog modal-lg">
@@ -5301,6 +5306,7 @@ export default function Course() {
                                         )
                                       })}
                                     </tr>
+
                                   </tbody>
                                 </table>
                               </div>
@@ -5310,7 +5316,6 @@ export default function Course() {
                                 ไม่พบข้อมูล CLO สำหรับรายวิชานี้ กรุณาเลือกรายวิชาและตอนเรียนให้ถูกต้องเพื่อดูข้อมูล CLO
                               </div>
                             )}
-
                           
 <h6 className="mt-4 mb-3">รายชื่อนักเรียน</h6>
 <div className="d-flex justify-content-end mb-3">
@@ -5638,7 +5643,6 @@ export default function Course() {
     </div>
   </>
 )}
-
                       </div>
                     </div>
                   </div>
