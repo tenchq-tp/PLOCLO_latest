@@ -407,10 +407,8 @@ export default function Course() {
       return;
     }
     fetchAllCourseByProgram(selectedProgram);
-     fetchSelectCourse();
-         setSelectedCourseId();
-
-
+    fetchSelectCourse();
+    setSelectedCourseId();
   }, [selectedSemesterId]);
 
   // ใช้ useEffect เพื่อโหลดข้อมูลตั้งต้นเมื่อเข้าสู่ Step 2
@@ -421,20 +419,18 @@ export default function Course() {
     }
   }, [currentStep]);
 
-   useEffect(() => {
-  if (
-    selectedCourseId &&
-    selectedSemesterId &&
-    selectedYear &&
-    selectedProgram
-  ) {
-    if (activeTab === 2) {
-      // เรียกใช้ fetchWeight เมื่อเข้าแท็บ Course-CLO Mapping
-      fetchWeight();
+  useEffect(() => {
+    if (
+      selectedCourseId &&
+      selectedSemesterId &&
+      selectedYear &&
+      selectedProgram
+    ) {
+      if (activeTab == 2) {
+        fetchWeight();
+      }
     }
-  }
-}, [selectedCourseId, selectedSemesterId, selectedYear, activeTab]);
-
+  }, [activeTab]);
 
   async function fetchWeight() {
     try {
@@ -739,7 +735,6 @@ export default function Course() {
   };
 
   const handlePostPloCloScores = () => {
-
     // ตรวจสอบว่าตอนนี้อยู่ที่แท็บ CLO-PLO Mapping จริงๆ
     if (activeTab !== 3) {
       console.error("ฟังก์ชันนี้ควรถูกเรียกจากแท็บ CLO-PLO Mapping เท่านั้น");
@@ -817,7 +812,6 @@ export default function Course() {
       scores: ploCloData, // เปลี่ยนจาก mappings เป็น scores
     };
 
-
     // หลังจากบันทึกข้อมูลเรียบร้อยแล้ว ให้เรียกใช้ฟังก์ชันรีเฟรชข้อมูล
     axios.post("/plo_clo", payload).then((response) => {
       if (response.data && response.data.success) {
@@ -830,7 +824,6 @@ export default function Course() {
   };
 
   const handlePostCourseCloScores = () => {
-
     // ตรวจสอบว่าตอนนี้อยู่ที่แท็บ Course-CLO Mapping จริงๆ
     if (activeTab !== 2) {
       console.error(
@@ -900,11 +893,11 @@ export default function Course() {
       year: parseInt(selectedYear, 10),
       scores: courseCloData,
     };
+
     // ใช้ PATCH method เพื่อทำการอัพเดทเท่านั้น
     axios
       .patch("/course_clo/weight", payload)
       .then((response) => {
-
         if (response.data && response.data.success) {
           // อัปเดตสถานะ
           alert("บันทึกการเชื่อมโยง Course-CLO สำเร็จ!");
@@ -938,7 +931,6 @@ export default function Course() {
         selectedSemesterId &&
         selectedYear
       ) {
-
         const response = await axios.get("/course_clo", {
           params: {
             program_id: selectedProgram,
@@ -948,16 +940,13 @@ export default function Course() {
             year: selectedYear,
           },
         });
-
         const formattedCLOs = Array.isArray(response.data)
           ? response.data
           : [response.data].filter(Boolean);
         setCLOs(formattedCLOs);
 
-        // 2. ดึงข้อมูล PLO-CLO mappings ใหม่
         await fetchPLOCLOMappings();
 
-        // 3. ดึงข้อมูล weights ใหม่ (ถ้าจำเป็น)
         if (selectedProgram) {
           await fetchCourseWeights(selectedProgram);
         }
@@ -1018,7 +1007,6 @@ export default function Course() {
     axios
       .patch("/plo_clo", ploCloPayload)
       .then((response) => {
-
         if (response.data && response.data.success) {
           alert("อัปเดตการเชื่อมโยง PLO-CLO สำเร็จ!");
           setEditingScores(false);
@@ -1160,7 +1148,6 @@ export default function Course() {
       });
     }
 
-
     // ส่งข้อมูลไปยัง API
     axios
       .post("/plo_clo", { mappings: ploCloData })
@@ -1191,11 +1178,11 @@ export default function Course() {
         year: newCourse.year,
         section_id: newCourse.section,
       });
-
       alert("Course added successfully!");
     } catch (err) {
       console.error("Error adding course:", err);
     }
+
     fetchAllCourseByProgram(selectedProgram);
   };
 
@@ -1265,9 +1252,8 @@ export default function Course() {
     } catch (err) {
       console.error("Error deleting course:", err);
     }
-        fetchAllCourseByProgram(selectedProgram);
 
-
+    fetchAllCourseByProgram(selectedProgram);
   };
 
   // ฟังก์ชันแก้ไขรายวิชา
@@ -1471,13 +1457,11 @@ export default function Course() {
           parseInt(editData.university_id) || assignment.university_id,
       };
 
-
       // เรียกใช้ API สำหรับอัปเดตข้อมูล
       const response = await axios.put(
         `/api/update_assignment/${currentAssignmentId}`,
         updateData
       );
-
 
       if (response.data) {
         // อัปเดตข้อมูลใน state
@@ -1526,6 +1510,7 @@ export default function Course() {
   };
 
   const fetchPLOCLOMappings = async () => {
+    // เพิ่มการล็อกข้อมูลที่ส่งไปยัง API
 
     try {
       // ทำให้แน่ใจว่า URL และพารามิเตอร์ถูกต้อง
@@ -1553,7 +1538,6 @@ export default function Course() {
     }
   };
 
-
   const updateWeightsFromMappings = (mappingData) => {
     const updatedWeights = {};
 
@@ -1565,12 +1549,10 @@ export default function Course() {
       if (ploId && cloId) {
         const key = `${ploId}-${cloId}`;
         updatedWeights[key] = mapping.weight || 0;
-      
       } else {
         console.error("ไม่พบ PLO_id หรือ CLO_id ในข้อมูล mapping:", mapping);
       }
     });
-
     setWeights(updatedWeights);
 
     // อัพเดต scores ด้วยถ้าอยู่ในโหมดแก้ไข
@@ -1592,7 +1574,7 @@ export default function Course() {
       setCourseList(response.data);
     } catch (error) {
       console.error("Error fetching program courses:", error);
-            setCourseList([]);
+      setCourseList([]);
       setProgramCourseData({
         courses: [],
         sections: [],
@@ -1648,6 +1630,7 @@ export default function Course() {
         `/api/update_assignment/${currentAssignmentId}`,
         updateData
       );
+
       if (response.data) {
         // แสดงข้อความสำเร็จ
         alert("บันทึกการแก้ไขข้อมูล Assignment สำเร็จ!");
@@ -1729,7 +1712,6 @@ export default function Course() {
 
     // อัปเดต excelData state
     setExcelData(parsedData);
-    console.log("Directly Pasted Data:", parsedData);
 
     // ปิดพื้นที่วางข้อมูล
     setShowPasteArea(false);
@@ -1775,6 +1757,7 @@ export default function Course() {
 
       // อัปเดต excelData state
       setExcelData(parsedData);
+
       // แสดงข้อความแจ้งเตือนว่าวางข้อมูลสำเร็จ
       alert(`วางข้อมูลสำเร็จ: พบ ${parsedData.length} รายการ`);
     } catch (err) {
@@ -1862,8 +1845,8 @@ export default function Course() {
         setTypeError("Please select only Excel file types");
         alert("Please select only Excel file types");
       }
-
-  }}
+    }
+  };
 
   async function fetchFilteredCourseClo() {
     try {
@@ -1875,9 +1858,6 @@ export default function Course() {
           year: selectedYear,
         },
       });
-            console.log(response.data);
-
-
       setSelectedCourseClo(response.data);
     } catch (error) {
       console.error("Error refreshing CLOs: ", error);
@@ -1920,6 +1900,7 @@ export default function Course() {
       alert("Some rows are missing required fields. Please check your data.");
       return;
     }
+
     let payload = [];
     for (let i = 0; i < previousYearCLOs.length; i++) {
       payload.push({
@@ -1929,9 +1910,7 @@ export default function Course() {
     }
 
     try {
-    const response = await axios.post("/api/clo-mapping/excel", payload);
-
-
+      const response = await axios.post("/api/clo-mapping/excel", payload);
       if (
         selectedCourseId &&
         selectedSemesterId &&
@@ -2083,7 +2062,6 @@ export default function Course() {
         const firstSheetName = workbook.SheetNames[0];
         const worksheet = workbook.Sheets[firstSheetName];
         const jsonData = XLSX.utils.sheet_to_json(worksheet);
-
 
         // ตรวจสอบรูปแบบข้อมูล
         if (jsonData.length === 0) {
@@ -2567,8 +2545,6 @@ export default function Course() {
       faculty_id: parseInt(selectedFaculty, 10),
       university_id: parseInt(selectedUniversity, 10),
     };
-
-    console.log("Sending data to API:", newAssignment);
     setLoading(true);
 
     // Send the data to the API
@@ -2682,15 +2658,12 @@ export default function Course() {
       try {
         const dataToSend = prepareDataForApi();
 
-        
-
         // แสดงสถานะกำลังบันทึก
         setLoading(true);
 
         const response = await axios.post("/api/save_assignment_clo", {
           data: dataToSend,
         });
-
 
         // แสดงข้อความสำเร็จ
         alert("บันทึกคะแนน CLO สำเร็จ!");
@@ -3004,7 +2977,6 @@ export default function Course() {
       if (homeworks.length > 0 && homeworks[0].id) {
         // ใช้ id จาก homework แรก
         setCurrentAssignmentId(homeworks[0].id);
-        
       } else {
         setImportErrors([
           "ไม่พบข้อมูลการบ้านที่จะบันทึก กรุณาเลือกการบ้านอีกครั้ง",
@@ -3036,7 +3008,7 @@ export default function Course() {
       // ไม่ต้องส่ง assignment_clo_id เพราะ backend จะดึงข้อมูลทั้งหมดจาก assignment_id
       // และทำการเชื่อมโยงกับ CLO ทั้งหมดให้อัตโนมัติ
     }));
- 
+
     // ส่งข้อมูลไป API
     axios
       .post("/api/add_students_to_assignment", {
@@ -3278,7 +3250,7 @@ export default function Course() {
             style={{ flexWrap: "nowrap", marginTop: "0px" }}>
             <div className="mb-3 me-2" style={{ width: "300px" }}>
               <label className="form-label text-start">
-                {t('Choose a university')}
+                {t("Choose a university")}
               </label>
               <select
                 className="form-select"
@@ -3286,7 +3258,7 @@ export default function Course() {
                 onChange={(e) =>
                   handleFilterChange("university", e.target.value)
                 }>
-                <option value="">{t('Select University')}</option>
+                <option value="">{t("Select University")}</option>
                 {universities.map((university) => (
                   <option
                     key={university.university_id}
@@ -3299,13 +3271,15 @@ export default function Course() {
             </div>
 
             <div className="mb-3 me-2" style={{ width: "350px" }}>
-              <label className="form-label text-start">{t('Choose a Faculty')}</label>
+              <label className="form-label text-start">
+                {t("Choose a Faculty")}
+              </label>
               <select
                 className="form-select"
                 value={selectedFaculty || ""}
                 onChange={(e) => handleFilterChange("faculty", e.target.value)}
                 disabled={!selectedUniversity}>
-                <option value="">{t('Select Faculty')}</option>
+                <option value="">{t("Select Faculty")}</option>
                 {facultys.map((faculty) => (
                   <option key={faculty.faculty_id} value={faculty.faculty_id}>
                     {faculty.faculty_name_th} ({faculty.faculty_name_en})
@@ -3314,13 +3288,15 @@ export default function Course() {
               </select>
             </div>
             <div className="mb-3 me-2" style={{ width: "200px" }}>
-              <label className="form-label text-start">{t('Choose a Program')}</label>
+              <label className="form-label text-start">
+                {t("Choose a Program")}
+              </label>
               <select
                 className="form-select"
                 value={selectedProgram}
                 onChange={(e) => handleFilterChange("program", e.target.value)}
                 disabled={!selectedFaculty}>
-                <option value="">{t('Select Program')}</option>
+                <option value="">{t("Select Program")}</option>
                 {getUniquePrograms(programs).map((program) => (
                   <option key={program.program_id} value={program.program_id}>
                     {program.program_name}
@@ -3330,13 +3306,13 @@ export default function Course() {
             </div>
 
             <div className="mb-3 me-2" style={{ width: "90px" }}>
-              <label className="form-label">{t('Year')}</label>
+              <label className="form-label">{t("Year")}</label>
               <select
                 className="form-select"
                 value={selectedYear}
                 onChange={(e) => handleFilterChange("year", e.target.value)}
                 disabled={!selectedProgram}>
-                <option value="">{t('Select Year')}</option>
+                <option value="">{t("Select Year")}</option>
                 {years.map((year) => (
                   <option key={year} value={year}>
                     {year}
@@ -3346,14 +3322,14 @@ export default function Course() {
             </div>
 
             <div className="mb-3 me-2" style={{ width: "180px" }}>
-              <label className="form-label">{t('Semester')}</label>
+              <label className="form-label">{t("Semester")}</label>
               <select
                 className="form-select"
                 name="semester_id"
                 value={newCourse.semester_id}
                 onChange={handleCourseChange}
                 disabled={!selectedYear}>
-                <option value="">{t('Select Semester')}</option>
+                <option value="">{t("Select Semester")}</option>
                 {semesters && semesters.length > 0 ? (
                   semesters.map((semester) => (
                     <option
@@ -3381,12 +3357,12 @@ export default function Course() {
         <div
           className={`tab-content ${activeTab === 0 ? "active" : "hidden"}`}
           style={{ marginTop: "10px" }}>
-          <h3>{t('Course Management')}</h3>
+          <h3>{t("Course Management")}</h3>
           <hr className="my-4" />
 
           {/* Add Course Section */}
           <AddCourse
-            selectedProgram={selectedProgram} 
+            selectedProgram={selectedProgram}
             newCourse={newCourse}
             handleCourseChange={handleCourseChange}
             addCourse={addCourse}
@@ -3412,7 +3388,7 @@ export default function Course() {
                   // console.log("Selected Course:", e.target.value);
                   setSelectedCourseId(e.target.value);
                 }}
-                disabled={!selectedSemesterId}>
+                disabled={!newCourse.semester_id}>
                 <option value="" disabled>
                   Select Course
                 </option>
@@ -3687,83 +3663,62 @@ export default function Course() {
             </div>
           )}
 
-          <div className="">
-  <div className="card-header">
-  </div>
-  <div className="card-body">
-    {!(selectedCourseId && selectedSemesterId && selectedYear) ? (
-      <p className="text-warning">
-        กรุณาเลือกข้อมูลให้ครบทุกช่องก่อนแสดง CLO
-      </p>
-    ) : selectedCourseClo.length > 0 ? (
-      <div className="plo-table-container">
-        <table className="plo-table">
-          <thead>
-            <tr>
-              <th className="plo-code-col">{t("CLO Code")}</th>
-              <th className="plo-name-col">{t("CLO Name")}</th>
-              <th className="plo-actions-col">{t("Actions")}</th>
-            </tr>
-          </thead>
-          <tbody>
-            {[...selectedCourseClo]
-              .sort((a, b) => {
-                const numA = parseInt(a.CLO_code.replace(/\D/g, ""), 10) || 0;
-                const numB = parseInt(b.CLO_code.replace(/\D/g, ""), 10) || 0;
-                return numA - numB;
-              })
-              .map((clo) => (
-                <tr key={clo.CLO_id}>
-                  <td>
-                    <div className="plo-cell-content text-center">
-                      {clo.CLO_code}
-                    </div>
-                  </td>
-                  <td>
-                    <div className="plo-cell-content">{clo.CLO_name}</div>
-                    {clo.CLO_engname && (
-                      <>
-                        <div className="my-1 border-t border-gray-300"></div>
-                        <div className="plo-cell-secondary">
-                          {clo.CLO_engname}
-                        </div>
-                      </>
-                    )}
-                  </td>
-                  <td>
-                    <button
-                      className="plo-table-btn plo-edit-btn"
-                      onClick={() => handleEditClo(clo.CLO_id)}
-                    >
-                      {t("Edit")}
-                    </button>
-                    <button
-                      className="plo-table-btn plo-delete-btn"
-                      onClick={() =>
-                        handleDeleteClo(
-                          clo.CLO_id,
-                          selectedCourseId,
-                          selectedSemesterId,
-                          selectedYear
-                        )
-                      }
-                    >
-                      {t("Delete")}
-                    </button>
-                  </td>
-                </tr>
-              ))}
-          </tbody>
-        </table>
-      </div>
-    ) : (
-      <div className="text-center">
-        <p>{t("No CLO data available for the selected filters.")}</p>
-      </div>
-    )}
-  </div>
-</div>
+          <div className="card mt-3">
+            <div className="card-header">
+              <h5>CLOs</h5>
+            </div>
+            <div className="card-body">
+              {!(selectedCourseId && selectedSemesterId && selectedYear) ? (
+                <p className="text-warning">
+                  กรุณาเลือกข้อมูลให้ครบทุกช่องก่อนแสดง CLO
+                </p>
+              ) : selectedCourseClo.length > 0 ? (
+                <table className="table">
+                  <thead>
+                    <tr>
+                      <th>CLO </th>
+                      <th>Detail</th>
+                      <th>Detail Eng</th>
+                      <th>Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {selectedCourseClo.map((clo) => (
+                      <tr key={clo.CLO_id}>
+                        <td>{clo.CLO_code}</td>
+                        <td>{clo.CLO_name}</td>
+                        <td>{clo.CLO_engname}</td>
+                        <td>
+                          <button
+                            className="btn btn-warning me-2"
+                            onClick={() => handleEditClo(clo.CLO_id)}>
+                            Edit
+                          </button>
 
+                          <button
+                            className="btn btn-danger"
+                            onClick={() => {
+                              handleDeleteClo(
+                                clo.CLO_id,
+                                selectedCourseId,
+                                selectedSemesterId,
+                                selectedYear
+                              );
+                            }}>
+                            Delete
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              ) : (
+                <>
+                  <p>No CLO data available</p>
+                </>
+              )}
+            </div>
+          </div>
 
           {showEditModal && (
             <div className="modal show" style={{ display: "block" }}>
@@ -3839,17 +3794,19 @@ export default function Course() {
           <div className="row" style={{ padding: "0px 10px 0 10px" }}>
             <div className="col-md-3">
               <label className="form-label text-start">Choose a Course</label>
+
               <select
                 className="form-select"
                 value={selectedCourseId || ""}
                 onChange={(e) => {
+                  // console.log("Selected Course:", e.target.value);
                   setSelectedCourseId(e.target.value);
                 }}
                 disabled={!newCourse.semester_id}>
                 <option value="" disabled>
                   Select Course
                 </option>
-                {courses.map((course) => (
+                {programCourseData.courses.map((course) => (
                   <option key={course.course_id} value={course.course_id}>
                     {`${course.course_id} - ${course.course_name} (${course.course_engname})`}
                   </option>
@@ -3878,7 +3835,7 @@ export default function Course() {
             </div>
           </div>
 
-          <div className="">
+          <div className="card mt-3">
             <div className="card-header">
               <h5>CLO-PLO Mapping Table</h5>
             </div>
@@ -4084,7 +4041,6 @@ export default function Course() {
                 className="form-select"
                 value={selectedCourseId || ""}
                 onChange={(e) => {
-                  console.log("Selected Course:", e.target.value);
                   setSelectedCourseId(e.target.value);
                 }}
                 disabled={!newCourse.semester_id}>
@@ -4113,7 +4069,6 @@ export default function Course() {
               calculateTotal={calculateTotal}
               selectedSemesterId={selectedSemesterId}
               selectedYear={selectedYear}
-              
             />
           ) : (
             <div style={{ marginTop: "20px", textAlign: "center" }}>
@@ -4719,8 +4674,8 @@ export default function Course() {
                                     handleAssignmentClick(assignment)
                                   }
                                   onMouseOver={(e) =>
-                                  (e.currentTarget.style.backgroundColor =
-                                    "#e9f5ff")
+                                    (e.currentTarget.style.backgroundColor =
+                                      "#e9f5ff")
                                   }
                                   onMouseOut={(e) =>
                                     (e.currentTarget.style.backgroundColor = "")
@@ -4820,8 +4775,8 @@ export default function Course() {
                                   <strong>วันที่สร้าง:</strong>{" "}
                                   {selectedAssignment.created_at
                                     ? new Date(
-                                      selectedAssignment.created_at
-                                    ).toLocaleDateString("th-TH")
+                                        selectedAssignment.created_at
+                                      ).toLocaleDateString("th-TH")
                                     : "-"}
                                 </p>
                               </div>
@@ -5077,7 +5032,7 @@ export default function Course() {
                                         (clo) => {
                                           homeworkData.scores[clo.clo_id] =
                                             studentScores[
-                                            clo.assignment_clo_id
+                                              clo.assignment_clo_id
                                             ] || 0;
                                         }
                                       );
