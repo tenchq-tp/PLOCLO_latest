@@ -12,7 +12,7 @@ export default function AddCourse({
   selectedYear,
   selectedSemesterId,
 }) {
-      const { t, i18n } = useTranslation();
+  const { t, i18n } = useTranslation();
 
   const handleCourseExcelUpload = async (e) => {
     const file = e.target.files[0];
@@ -45,7 +45,9 @@ export default function AddCourse({
         }
 
         const dataToUpload = jsonData.map((row) => ({
-          ...row,
+          course_id: row.course_id,
+          course_name: row.course_name_thai || "",     
+          course_engname: row.course_name_eng || "",  
           program_id: selectedProgram,
           year: selectedYear,
           semester_id: selectedSemesterId,
@@ -83,74 +85,74 @@ export default function AddCourse({
 
   return (
     <div className="mb-4">
-  <h4>{t('Add Course')}</h4>
-  <div className="d-flex flex-wrap align-items-end" style={{ gap: "10px" }}>
-    <input
-      className="form-control"
-      placeholder={t('Course ID')}
-      name="course_id"
-      value={newCourse.course_id}
-      onChange={handleCourseChange}
-      style={{ width: "150px" }}
-    />
+      <h4>{t('Add Course')}</h4>
+      <div className="d-flex flex-wrap align-items-end" style={{ gap: "10px" }}>
+        <input
+          className="form-control"
+          placeholder={t('Course ID')}
+          name="course_id"
+          value={newCourse.course_id}
+          onChange={handleCourseChange}
+          style={{ width: "150px" }}
+        />
 
-    <input
-      className="form-control"
-      placeholder={t('Course Name (Thai)')}
-      name="course_name"
-      value={newCourse.course_name}
-      onChange={handleCourseChange}
-      style={{ width: "300px" }}
-    />
+        <input
+          className="form-control"
+          placeholder={t('Course Name (Thai)')}
+          name="course_name"
+          value={newCourse.course_name}
+          onChange={handleCourseChange}
+          style={{ width: "300px" }}
+        />
 
-    <input
-      className="form-control"
-      placeholder={t('Course Name (English)')}
-      name="course_engname"
-      value={newCourse.course_engname}
-      onChange={handleCourseChange}
-      style={{ width: "300px" }}
-    />
+        <input
+          className="form-control"
+          placeholder={t('Course Name (English)')}
+          name="course_engname"
+          value={newCourse.course_engname}
+          onChange={handleCourseChange}
+          style={{ width: "300px" }}
+        />
 
-    <input
-      className="form-control"
-      placeholder={t('Section')}
-      name="section"
-      value={newCourse.section}
-      onChange={handleCourseChange}
-      style={{ width: "100px" }}
-    />
+        <input
+          className="form-control"
+          placeholder={t('Section')}
+          name="section"
+          value={newCourse.section}
+          onChange={handleCourseChange}
+          style={{ width: "100px" }}
+        />
 
-    <button
-      onClick={addCourse}
-      className="btn btn-success"
-      disabled={!selectedSemesterId}
-      style={{ width: "100px" }}
-    >
-      {t('Insert Course')}
-    </button>
+        <button
+          onClick={addCourse}
+          className="btn btn-success"
+          disabled={!selectedSemesterId}
+          style={{ width: "100px" }}
+        >
+          {t('Insert Course')}
+        </button>
 
-    <div>
-      <button
-        onClick={() => document.getElementById("uploadCourseFile").click()}
-        className="btn btn-primary"
-                disabled={!selectedSemesterId}
+        <div>
+          <button
+            onClick={() => document.getElementById("uploadCourseFile").click()}
+            className="btn btn-primary"
+            disabled={!selectedSemesterId}
 
-        style={{ width: "180px" }}
-      >
-        {t('Upload Excel (Course)')}
-      </button>
-      <input
-        type="file"
-        id="uploadCourseFile"
-        style={{ display: "none" }}
-        accept=".xlsx, .xls"
-        onChange={handleCourseExcelUpload}
+            style={{ width: "180px" }}
+          >
+            {t('Upload Excel (Course)')}
+          </button>
+          <input
+            type="file"
+            id="uploadCourseFile"
+            style={{ display: "none" }}
+            accept=".xlsx, .xls"
+            onChange={handleCourseExcelUpload}
 
-      />
+          />
+        </div>
+      </div>
     </div>
-  </div>
-</div>
 
 
   );
