@@ -115,6 +115,7 @@ const resources = {
             "PLOs from previous year": "PLO จากปีการศึกษาที่แล้ว",
             "Import PLO": "นำเข้า PLO",
             "No PLO records found from the previous year.": "ไม่พบ PLO จากปีการศึกษาที่แล้ว",
+            "Performance Analysis System": "ระบบวิเคราะห์ผลการเรียนรู้",
         }
     },
     en: {

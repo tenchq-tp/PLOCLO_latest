@@ -208,7 +208,7 @@ export default function Navbar({ role }) {
                 updateAnimationBar(activeItemRef.current)
               }
               setActiveRef={activeItemRef}>
-              {t("ViewChart")}
+              {t("Analysis System")}
             </CustomLink>
           )}
 

@@ -77,7 +77,7 @@ export default function Program() {
   const [studentExcelData, setStudentExcelData] = useState(null);
   const [studentTypeError, setStudentTypeError] = useState(null);
 
-  async function fetchStudents() {
+async function fetchStudents() {
     try {
       if (!allFiltersSelected) return;
 
@@ -123,7 +123,11 @@ export default function Program() {
       }
     } catch (error) {
       console.error("Error adding student:", error);
-      showAlert("เกิดข้อผิดพลาดในการเพิ่มนักศึกษา", "danger");
+      if (error.response && error.response.status === 409) {
+        showAlert("รหัสนักศึกษานี้มีอยู่ในระบบแล้ว", "danger");
+      } else {
+        showAlert("เกิดข้อผิดพลาดในการเพิ่มนักศึกษา", "danger");
+      }
     }
   };
 
@@ -133,7 +137,8 @@ export default function Program() {
         `/api/program/id?program_name=${selectedProgramName}&program_year=${selectedYear}`
       );
 
-      const response = await axios.put(`/api/students/program/${selectedStudent.id}`, {
+      // ส่ง student_id แทน id เพื่อให้ตรงกับการเปลี่ยนแปลงในฝั่ง backend
+      const response = await axios.put(`/api/students/program/${selectedStudent.student_id}`, {
         student_id: newStudent.student_id,
         first_name: newStudent.first_name,
         last_name: newStudent.last_name,
@@ -145,7 +150,7 @@ export default function Program() {
 
       if (response.data) {
         const updatedStudents = students.map(student =>
-          student.id === selectedStudent.id ? response.data : student
+          student.student_id === selectedStudent.student_id ? response.data : student
         );
         setStudents(updatedStudents);
         setShowEditStudentModal(false);
@@ -153,7 +158,13 @@ export default function Program() {
       }
     } catch (error) {
       console.error("Error editing student:", error);
-      showAlert("เกิดข้อผิดพลาดในการแก้ไขข้อมูลนักศึกษา", "danger");
+      if (error.response && error.response.status === 409) {
+        showAlert("รหัสนักศึกษานี้มีอยู่ในระบบแล้ว", "danger");
+      } else if (error.response && error.response.status === 404) {
+        showAlert("ไม่พบข้อมูลนักศึกษาที่ต้องการแก้ไข", "danger");
+      } else {
+        showAlert("เกิดข้อผิดพลาดในการแก้ไขข้อมูลนักศึกษา", "danger");
+      }
     }
   };
 
@@ -163,13 +174,18 @@ export default function Program() {
     }
 
     try {
+      // ใช้ student_id ในการลบข้อมูล
       await axios.delete(`/api/students/program/${studentId}`);
-      const updatedStudents = students.filter(student => student.id !== studentId);
+      const updatedStudents = students.filter(student => student.student_id !== studentId);
       setStudents(updatedStudents);
       showAlert("ลบนักศึกษาเรียบร้อยแล้ว", "success");
     } catch (error) {
       console.error("Error deleting student:", error);
-      showAlert("เกิดข้อผิดพลาดในการลบนักศึกษา", "danger");
+      if (error.response && error.response.status === 404) {
+        showAlert("ไม่พบข้อมูลนักศึกษาที่ต้องการลบ", "danger");
+      } else {
+        showAlert("เกิดข้อผิดพลาดในการลบนักศึกษา", "danger");
+      }
     }
   };
 
@@ -196,6 +212,31 @@ export default function Program() {
             const sheet = workbook.Sheets[sheetName];
             const jsonData = XLSX.utils.sheet_to_json(sheet);
 
+            // ตรวจสอบว่ามีคอลัมน์ที่จำเป็นหรือไม่ (รองรับทั้งชื่อภาษาอังกฤษและไทย)
+            const requiredColumns = [
+              ['student_id', 'รหัสนักศึกษา'],
+              ['first_name', 'ชื่อ'],
+              ['last_name', 'นามสกุล']
+            ];
+
+            if (jsonData.length > 0) {
+              const firstRow = jsonData[0];
+              let hasAllRequiredColumns = true;
+
+              for (const [engCol, thaiCol] of requiredColumns) {
+                if (!(engCol in firstRow || thaiCol in firstRow)) {
+                  hasAllRequiredColumns = false;
+                  break;
+                }
+              }
+
+              if (!hasAllRequiredColumns) {
+                setStudentTypeError("ไฟล์ Excel ต้องมีคอลัมน์ 'student_id/รหัสนักศึกษา', 'first_name/ชื่อ', และ 'last_name/นามสกุล'");
+                setStudentExcelData(null);
+                return;
+              }
+            }
+
             setStudentExcelData(jsonData);
             console.log(jsonData);
           } catch (error) {
@@ -221,7 +262,8 @@ export default function Program() {
     if (studentExcelData && studentExcelData.length > 0) {
       // ตรวจสอบว่าได้เลือกฟิลเตอร์ครบหรือไม่
       if (!allFiltersSelected) {
-        window.alert("กรุณาเลือกมหาวิทยาลัย คณะ โปรแกรม และปีการศึกษาก่อนอัปโหลดข้อมูล"); return;
+        window.alert("กรุณาเลือกมหาวิทยาลัย คณะ โปรแกรม และปีการศึกษาก่อนอัปโหลดข้อมูล"); 
+        return;
       }
 
       // แสดง confirmation dialog
@@ -245,16 +287,26 @@ export default function Program() {
           faculty_id: selectedFaculty
         }));
 
+        // ตรวจสอบข้อมูลก่อนส่ง
+        const invalidData = dataToUpload.filter(item => 
+          !item.student_id || !item.first_name || !item.last_name
+        );
+
+        if (invalidData.length > 0) {
+          window.alert(`มีข้อมูลไม่ครบถ้วน ${invalidData.length} รายการ กรุณาตรวจสอบข้อมูลในไฟล์ Excel`);
+          return;
+        }
+
         const response = await axios.post("/api/students/program/excel", dataToUpload);
 
         if (response.data) {
-          window.alert("อัปโหลดข้อมูลนักศึกษาสำเร็จ");
+          window.alert(`อัปโหลดข้อมูลนักศึกษาสำเร็จ: เพิ่ม/อัปเดต ${response.data.successCount} รายการ, ผิดพลาด ${response.data.errorCount} รายการ`);
           setStudentExcelData(null);
           fetchStudents(); // รีเฟรชข้อมูลนักศึกษา
         }
       } catch (error) {
         console.error("Error:", error);
-        window.alert(`เกิดข้อผิดพลาด: ${error.message}`);
+        window.alert(`เกิดข้อผิดพลาด: ${error.response?.data?.message || error.message}`);
       }
     } else {
       window.alert("ไม่มีข้อมูลที่จะอัปโหลด กรุณาอัปโหลดไฟล์ก่อน");

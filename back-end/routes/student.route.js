@@ -9,7 +9,7 @@ import {
   addStudent,
   updateStudent,
   deleteStudent,
-  importStudentsFromExcel
+  importStudentsFromExcel,
 } from "../controllers/student.controller.js";
 
 router.post("/", insertStudent);
