@@ -3379,21 +3379,8 @@ export default function Course() {
             </div>
           </div>
 
-          {showMapping && selectedCourseId ? (
-            <CloMapping
-              handleEditToggle={handleEditToggle}
-              editingScores={editingScores}
-              handlePostScores={handlePostScores}
-              courseClo={courseClo}
-              selectedCourseId={selectedCourseId}
-              courses={courses}
-              weightEachCourse={allWeights}
-              handleEditWeightEachCourse={handleEditWeightEachCourse}
-              calculateTotal={calculateTotal}
-              selectedSemesterId={selectedSemesterId}
-              selectedYear={selectedYear}
-              role={role}
-            />
+          {selectedCourseId ? (
+            <CloMapping selectedCourseId={selectedCourseId} />
           ) : (
             <div style={{ marginTop: "20px", textAlign: "center" }}>
               <p style={{ fontSize: "16px", color: "#666" }}>

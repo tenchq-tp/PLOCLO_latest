@@ -586,7 +586,6 @@ export default function Program() {
       );
       const ploData = await ploResponse.json();
 
-
       if (ploData.success && ploData.message && ploData.message.length > 0) {
         setPlos(ploData.message);
       } else if (Array.isArray(ploData) && ploData.length > 0) {
@@ -605,7 +604,6 @@ export default function Program() {
       }
 
       const courseData = await courseResponse.json();
-
 
       if (Array.isArray(courseData)) {
         setCourses(courseData);
@@ -786,129 +784,132 @@ export default function Program() {
   };
 
   const handleUploadButtonClick = async () => {
-  if (excelData && excelData.length > 0) {
-    // ตรวจสอบว่าได้เลือกโปรแกรมแล้วหรือไม่
-    if (!selectedProgramName || selectedProgramName === "all") {
-      window.alert("กรุณาเลือกโปรแกรมก่อนอัปโหลดข้อมูล");
-      return;
-    }
+    if (excelData && excelData.length > 0) {
+      // ตรวจสอบว่าได้เลือกโปรแกรมแล้วหรือไม่
+      if (!selectedProgramName || selectedProgramName === "all") {
+        window.alert("กรุณาเลือกโปรแกรมก่อนอัปโหลดข้อมูล");
+        return;
+      }
 
-    // ตรวจสอบว่าได้เลือกปีแล้วหรือไม่
-    if (!selectedYear || selectedYear === "all") {
-      window.alert("กรุณาเลือกปีการศึกษาก่อนอัปโหลดข้อมูล");
-      return;
-    }
+      // ตรวจสอบว่าได้เลือกปีแล้วหรือไม่
+      if (!selectedYear || selectedYear === "all") {
+        window.alert("กรุณาเลือกปีการศึกษาก่อนอัปโหลดข้อมูล");
+        return;
+      }
 
-    // แสดง confirmation dialog
-    if (
-      !window.confirm(
-        "Do you want to upload " +
-          excelData.length +
-          " PLO records?" +
-          "\n" +
-          "คุณต้องการอัปโหลดข้อมูล PLO จำนวน " +
-          excelData.length +
-          " รายการใช่หรือไม่?"
-      )
-    ) {
-      return;
-    }
+      // แสดง confirmation dialog
+      if (
+        !window.confirm(
+          "Do you want to upload " +
+            excelData.length +
+            " PLO records?" +
+            "\n" +
+            "คุณต้องการอัปโหลดข้อมูล PLO จำนวน " +
+            excelData.length +
+            " รายการใช่หรือไม่?"
+        )
+      ) {
+        return;
+      }
 
+      try {
+        const result = await axios.get(
+          `/api/program/id?program_name=${selectedProgramName}&program_year=${selectedYear}`
+        );
+
+        // เตรียมข้อมูลสำหรับส่งไปยัง API
+        const dataToUpload = excelData.map((item) => ({
+          PLO_name: item.PLO_name,
+          PLO_engname: item.PLO_engname,
+          PLO_code: item.PLO_code,
+          program_id: result.data.program_id,
+          year: parseInt(selectedYear),
+        }));
+
+        const response = await axios.post("/api/plo/excel", dataToUpload);
+
+        window.alert("Data uploaded successfully\nอัปโหลดข้อมูลสำเร็จ");
+
+        // รีเฟรชข้อมูล PLO หลังจากอัปโหลด
+        fetchPlo();
+        setExcelData(null);
+      } catch (error) {
+        console.error("Error:", error);
+
+        // ตรวจสอบว่าเป็น error เรื่อง PLO ซ้ำหรือไม่
+        if (error.response?.status === 400 && error.response?.data?.message) {
+          const errorMessage = error.response.data.message;
+
+          // ตรวจสอบว่าเป็น error เรื่อง PLO ซ้ำหรือไม่
+          if (
+            errorMessage.includes("already exists") ||
+            errorMessage.includes("already exist") ||
+            errorMessage.includes("Duplicate")
+          ) {
+            window.alert(
+              "⚠️ พบข้อมูล PLO ซ้ำในปีนี้แล้ว\n" +
+                "Found duplicate PLO data for this year\n\n" +
+                "รายละเอียด: " +
+                errorMessage +
+                "\n\n" +
+                "กรุณาตรวจสอบข้อมูลและลองใหม่อีกครั้ง"
+            );
+          } else {
+            window.alert("เกิดข้อผิดพลาด: " + errorMessage);
+          }
+        } else {
+          window.alert("เกิดข้อผิดพลาดในการอัปโหลดข้อมูล");
+        }
+      }
+    } else {
+      window.alert("ไม่มีข้อมูลที่จะอัปโหลด กรุณาอัปโหลดไฟล์หรือวางข้อมูลก่อน");
+    }
+  };
+
+  const handleAddPlo = async () => {
     try {
       const result = await axios.get(
         `/api/program/id?program_name=${selectedProgramName}&program_year=${selectedYear}`
       );
 
-      // เตรียมข้อมูลสำหรับส่งไปยัง API
-      const dataToUpload = excelData.map((item) => ({
-        PLO_name: item.PLO_name,
-        PLO_engname: item.PLO_engname, 
-        PLO_code: item.PLO_code,
-        program_id: result.data.program_id,
+      await axios.post("/api/plo", {
+        PLO_name: newPlo.PLO_name,
+        PLO_engname: newPlo.PLO_engname,
+        PLO_code: newPlo.PLO_code,
+        program_id: parseInt(result.data.program_id),
         year: parseInt(selectedYear),
-      }));
+      });
 
-
-      const response = await axios.post("/api/plo/excel", dataToUpload);
-      
-      window.alert("Data uploaded successfully\nอัปโหลดข้อมูลสำเร็จ");
-
-      // รีเฟรชข้อมูล PLO หลังจากอัปโหลด
+      setShowAddModal(false);
       fetchPlo();
-      setExcelData(null);
-
     } catch (error) {
-      console.error("Error:", error);
-      
+      console.error("Error adding PLO:", error);
+
       // ตรวจสอบว่าเป็น error เรื่อง PLO ซ้ำหรือไม่
       if (error.response?.status === 400 && error.response?.data?.message) {
         const errorMessage = error.response.data.message;
-        
-        // ตรวจสอบว่าเป็น error เรื่อง PLO ซ้ำหรือไม่
-        if (errorMessage.includes("already exists") || 
-            errorMessage.includes("already exist") || 
-            errorMessage.includes("Duplicate")) {
-          
+
+        if (
+          errorMessage.includes("already exists") ||
+          errorMessage.includes("already exist") ||
+          errorMessage.includes("Duplicate")
+        ) {
           window.alert(
             "⚠️ พบข้อมูล PLO ซ้ำในปีนี้แล้ว\n" +
-            "Found duplicate PLO data for this year\n\n" +
-            "รายละเอียด: " + errorMessage + "\n\n" +
-            "กรุณาตรวจสอบข้อมูลและลองใหม่อีกครั้ง"
+              "Found duplicate PLO data for this year\n\n" +
+              "รายละเอียด: " +
+              errorMessage +
+              "\n\n" +
+              "กรุณาใช้รหัส PLO อื่นหรือตรวจสอบข้อมูลที่มีอยู่"
           );
         } else {
           window.alert("เกิดข้อผิดพลาด: " + errorMessage);
         }
       } else {
-        window.alert("เกิดข้อผิดพลาดในการอัปโหลดข้อมูล");
+        window.alert("เกิดข้อผิดพลาดในการเพิ่มข้อมูล PLO");
       }
     }
-  } else {
-    window.alert("ไม่มีข้อมูลที่จะอัปโหลด กรุณาอัปโหลดไฟล์หรือวางข้อมูลก่อน");
-  }
-};
-
-  const handleAddPlo = async () => {
-  try {
-    const result = await axios.get(
-      `/api/program/id?program_name=${selectedProgramName}&program_year=${selectedYear}`
-    );
-
-    await axios.post("/api/plo", {
-      PLO_name: newPlo.PLO_name,
-      PLO_engname: newPlo.PLO_engname,
-      PLO_code: newPlo.PLO_code,
-      program_id: parseInt(result.data.program_id),
-      year: parseInt(selectedYear),
-    });
-    
-    setShowAddModal(false);
-    fetchPlo();
-    
-  } catch (error) {
-    console.error("Error adding PLO:", error);
-    
-    // ตรวจสอบว่าเป็น error เรื่อง PLO ซ้ำหรือไม่
-    if (error.response?.status === 400 && error.response?.data?.message) {
-      const errorMessage = error.response.data.message;
-      
-      if (errorMessage.includes("already exists") || 
-          errorMessage.includes("already exist") || 
-          errorMessage.includes("Duplicate")) {
-        
-        window.alert(
-          "⚠️ พบข้อมูล PLO ซ้ำในปีนี้แล้ว\n" +
-          "Found duplicate PLO data for this year\n\n" +
-          "รายละเอียด: " + errorMessage + "\n\n" +
-          "กรุณาใช้รหัส PLO อื่นหรือตรวจสอบข้อมูลที่มีอยู่"
-        );
-      } else {
-        window.alert("เกิดข้อผิดพลาด: " + errorMessage);
-      }
-    } else {
-      window.alert("เกิดข้อผิดพลาดในการเพิ่มข้อมูล PLO");
-    }
-  }
-};
+  };
 
   // แก้ไขฟังก์ชัน handleEditPlo
   const handleEditPlo = (plo) => {
